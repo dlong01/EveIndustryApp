@@ -7,17 +7,15 @@ class Ingredient:
         self.quantity = quantity
         self.activity = activity
 
-    def output_ingredient_simple(self, formatter):
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
 
         # Getting the name of the product 
         cursor.execute("SELECT typeName FROM invTypes WHERE typeID = ?", (self.type_id,))
-        type_name = cursor.fetchone()[0]
+        self.type_name = cursor.fetchone()[0]
 
-        formatter.print(f"{type_name} x{self.quantity}")
-
-        conn.close()
+    def output_ingredient_simple(self, formatter):
+        formatter.print(f"{self.type_name} x{self.quantity}")
     
     def output_recipie(self, formatter):
         

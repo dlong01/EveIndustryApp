@@ -172,3 +172,4 @@ cython_debug/
 data/warehouse.db
 data/last_transaction.csv
 data/prev_transaction.txt
+shopping_list.csv

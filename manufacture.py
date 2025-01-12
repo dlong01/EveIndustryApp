@@ -31,11 +31,14 @@ def init_job():
         job = Job(product_id, MANUFACTURING_PROCESS_ID, runs)
 
     if job:
-        job.display_simple()
-        print("\n")
-        job.display_complete()
-        print("\n")
-        job.display_raw_resources()
+        option = input("What information would you like to see? (1) Full Job, (2) Materials Shopping list, (3) Job time: ")
+
+        if option == "1":
+            job.display_complete()
+        elif option == "2":
+            job.display_shopping_list()
+        elif option == "3":
+            print("not implemented")
     else:
         print("Unable to create job")
         return -1

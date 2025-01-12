@@ -27,8 +27,8 @@ def init_job():
     if not(product_id):
         return -1
     else:
-        runs = int(input("Enter the number of runs: "))
-        job = Job(product_id, MANUFACTURING_PROCESS_ID, runs)
+        quantity = int(input("Enter desired quantity: "))
+        job = Job(product_id, MANUFACTURING_PROCESS_ID, quantity)
 
     if job:
         option = input("What information would you like to see? (1) Full Job, (2) Materials Shopping list, (3) Job time, (4) All: ")
@@ -42,7 +42,7 @@ def init_job():
         elif option == "4":
             job.display_complete()
             job.display_shopping_list()
-            print("Time not impllemented")
+            print("Time not implemented")
     else:
         print("Unable to create job")
         return -1

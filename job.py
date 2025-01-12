@@ -20,5 +20,5 @@ class Job:
                 print("Shopping List:")
                 formatter.increase_indent()
                 for resource in resources:
-                    formatter.print(f"{resource.quantity} x{resource.type_name}")
+                    formatter.print(f"{resource.quantity}x {resource.type_name}")
                     shopping_list.write(f"{resource.type_name}\t{resource.quantity}\n")

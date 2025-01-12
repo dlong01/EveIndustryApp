@@ -49,8 +49,10 @@ class Activity:
         for material in materials:
             cursor.execute("SELECT 1 FROM industryActivityProducts WHERE productTypeID = ? AND activityID = ?", (material[0], self.activity_id))
             material_quantity = math.ceil((material[1] * self.runs) * self.matt_eff)
+
             if material_quantity < self.runs:
                 material_quantity = self.runs
+
             if cursor.fetchone():
                 prod_activity = Activity(material[0], self.activity_id, material_quantity)
                 self.ingredients.append(Ingredient(material[0], material_quantity, prod_activity))

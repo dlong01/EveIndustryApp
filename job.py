@@ -16,9 +16,9 @@ class Job:
     def display_shopping_list(self):
         resources = self.activity.get_raw_resources()
         with Formatter() as formatter:
-            with open("shopping_list.csv", "a") as shopping_list:
+            with open("shopping_list.csv", "w") as shopping_list:
                 print("Shopping List:")
                 formatter.increase_indent()
                 for resource in resources:
-                    formatter.print(f"{resource.type_name}\t{resource.quantity}")
+                    formatter.print(f"{resource.quantity} x{resource.type_name}")
                     shopping_list.write(f"{resource.type_name}\t{resource.quantity}\n")

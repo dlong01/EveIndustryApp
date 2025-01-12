@@ -10,6 +10,16 @@ class Activity:
         self.ingredients = []
         self.desired_quantity = desired_quantity
 
+        # Temporary step to input efficiency
+        # TODO: calculate efficiency automatically with stored BPC efficiency
+        type_name = self.get_product_name()
+
+        if type_name:
+            me = -1
+            while me < 0 or me > 10:
+                me = int(input(f"Enter the ME for {type_name}: "))
+            self.matt_eff = utils.calculate_matt_efficiency(int(me)/100)
+
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
 
@@ -38,12 +48,14 @@ class Activity:
         # Creating ingredient to produce required material
         for material in materials:
             cursor.execute("SELECT 1 FROM industryActivityProducts WHERE productTypeID = ? AND activityID = ?", (material[0], self.activity_id))
-            
+            material_quantity = math.ceil((material[1] * self.runs) * self.matt_eff)
+            if material_quantity < self.runs:
+                material_quantity = self.runs
             if cursor.fetchone():
-                prod_activity = Activity(material[0], self.activity_id, self.runs)
-                self.ingredients.append(Ingredient(material[0], self.runs * material[1], prod_activity))
+                prod_activity = Activity(material[0], self.activity_id, material_quantity)
+                self.ingredients.append(Ingredient(material[0], material_quantity, prod_activity))
             else:
-                self.ingredients.append(Ingredient(material[0], self.runs * material[1], None))
+                self.ingredients.append(Ingredient(material[0], material_quantity, None))
 
     def get_product_name(self):
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)

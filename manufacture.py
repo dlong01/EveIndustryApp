@@ -31,7 +31,7 @@ def init_job():
         job = Job(product_id, MANUFACTURING_PROCESS_ID, runs)
 
     if job:
-        option = input("What information would you like to see? (1) Full Job, (2) Materials Shopping list, (3) Job time: ")
+        option = input("What information would you like to see? (1) Full Job, (2) Materials Shopping list, (3) Job time, (4) All: ")
 
         if option == "1":
             job.display_complete()
@@ -39,6 +39,10 @@ def init_job():
             job.display_shopping_list()
         elif option == "3":
             print("not implemented")
+        elif option == "4":
+            job.display_complete()
+            job.display_shopping_list()
+            print("Time not impllemented")
     else:
         print("Unable to create job")
         return -1

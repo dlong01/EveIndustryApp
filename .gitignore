@@ -171,3 +171,4 @@ cython_debug/
 .pypirc
 data/warehouse.db
 data/last_transaction.csv
+data/prev_transaction.txt

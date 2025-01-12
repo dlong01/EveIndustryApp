@@ -1,6 +1,7 @@
 import math
 import sqlite3
-from utils import WAREHOUSE_DATABASE_PATH, EVE_DATABASE_PATH
+from utils import WAREHOUSE_DATABASE_PATH, EVE_DATABASE_PATH, PREV_TRANS_PATH
+import os
 
 def init_warehouse():
     conn = sqlite3.connect(WAREHOUSE_DATABASE_PATH)
@@ -134,12 +135,29 @@ def convert_name_to_typeID(name):
         return None
 
 def input_market_transaction():
-    print("Paste the items in below: \n")
+    prev_trans_match = False
+    prev_trans_updated = False
+    prev_transaction = ""
+    if not os.path.exists(PREV_TRANS_PATH):
+        print("Transaction check file not found, proceeding with transaction")
+    else:
+        with open(PREV_TRANS_PATH, "r") as file:
+            prev_transaction = file.readline()
+
+    print("Paste the items in below: ")
     records = []
     while True:
         item_string = input()
         if item_string != "":
-            records.append(parse_record(item_string))
+            if item_string == prev_transaction or prev_trans_match:
+                print("Transaction already processed")
+                prev_trans_match = True
+            else:
+                records.append(parse_record(item_string))
+                if not(prev_trans_updated):
+                    with open(PREV_TRANS_PATH, "w") as file:
+                        file.write(item_string)
+                        prev_trans_updated = True
         else:
             break
     return records

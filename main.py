@@ -16,13 +16,13 @@ def main():
     while(True):
         print("\nOptions:")
         print("\t1 - Manufacture a product")
-        print("\t2 - Add products to the warehouse")
+        print("\t2 - Update the warehouse")
         print("\t3 - Exit")
         option = input("Enter the option: ")
         if option == "1":
             manufacture.init_job()
         elif option == "2":
-            warehousing.add_items()
+            warehousing.update_warehouse()
         elif option == "3":
             break
         else:

@@ -30,7 +30,36 @@ def verify_warehouse():
         return True
     
 def update_warehouse():
+    option = input("Are you copying items from market transactions? (y/n): ")
+    records = []
+    if option.lower() == "y":
+        records = input_market_transaction()
+        handle_market_transactions(records)
+    else:
+        option = input("Are you adding or removing items? (a/r): ")
+        if option.lower() == "a":
+            records = manual_add_items()
+            add_items(records)
+        elif option.lower() == "r":
+            records = manual_remove_items()
+            remove_items(records)
+        else:
+            print("Invalid option")
+
+def handle_market_transactions(records):
+    record_in = []
+    record_out = []
     
+    for record in records:
+        if record.cost > 0:
+            record_out.append(record)
+        else:
+            record.cost = record.cost * -1
+            record_in.append(record)
+    
+    add_items(record_in)
+    remove_items(record_out)
+        
     
 def add_items(records):
     conn = sqlite3.connect(WAREHOUSE_DATABASE_PATH)
@@ -63,7 +92,7 @@ def remove_items(records):
         result = cursor.fetchone()
         if result:
             cursor.execute("SELECT quantity FROM items WHERE typeID = ?", (record.typeID,))
-            quanity_stored = cursor.fetchone()
+            quanity_stored = cursor.fetchone()[0]
             new_quantity = quanity_stored - record.quantity
             if new_quantity < 0:
                 print(f"Insufficient quantity of {record.typeID}")
@@ -86,7 +115,7 @@ def parse_record(item_string):
         print(f"Item not found: {item_info[2]}")
     else:
         quantity = int(item_info[1])
-        cost = float(item_info[3].replace(" ISK", ""))
+        cost = float(item_info[4].replace(" ISK", ""))/quantity
         record = ItemRecord(type_id, quantity, cost)
     return record
 
@@ -94,7 +123,7 @@ def convert_name_to_typeID(name):
     conn = sqlite3.connect(EVE_DATABASE_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT typeID FROM invTypes WHERE typeName = ?", (name,))
+    cursor.execute("SELECT typeID FROM invTypes WHERE typeName = ? COLLATE NOCASE", (name,))
     typeID = cursor.fetchone()
 
     conn.close()
@@ -103,20 +132,8 @@ def convert_name_to_typeID(name):
         return typeID[0]
     else:
         return None
-    
-def input_items():
-    option = input("Are you copying items from market transactions? (y/n): ")
-    records = []
-    if option.lower() == "y":
-        records = get_market_transaction_items()
-        update_warehouse(records)
-    else:
-        
-        records = manual_input_items()
 
-    
-
-def get_market_transaction_items():
+def input_market_transaction():
     print("Paste the items in below: \n")
     records = []
     while True:
@@ -127,7 +144,7 @@ def get_market_transaction_items():
             break
     return records
 
-def manual_input_items():
+def manual_add_items():
     records = []
     cont = 'y'
     while cont != "n":
@@ -152,16 +169,14 @@ def manual_remove_items():
     while cont != "n":
         name = input("Enter the item name: ")
         quantity = input("Enter the item quantity: ")
-
-        unit_price = float(cost) / int(quantity)
         type_id = convert_name_to_typeID(name)
 
         if not type_id:
             print(f"Item not found: {name}")
         else:
-            records.append(ItemRecord(type_id, int(quantity), unit_price))
+            records.append(ItemRecord(type_id, int(quantity), 0))
         
-        cont = input("Do you want to add another item? (y/n): ")
+        cont = input("Do you want to remove another item? (y/n): ")
     return records
 
 class ItemRecord:

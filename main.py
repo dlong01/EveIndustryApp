@@ -2,6 +2,7 @@ import sqlite3
 import manufacture
 import utils
 import warehousing
+import api_requests
 
 def main():
     print("Welcome to Eve Industry App!")
@@ -15,11 +16,15 @@ def main():
 
     while(True):
         print("\nOptions:")
-        print("\t1 - Manufacture a product")
-        print("\t2 - Update the warehouse")
-        print("\t3 - Exit")
+        print("\t1 - View a recipie")
+        print("\t2 - Manufacture a product")
+        print("\t3 - Update the warehouse")
+
+        print("\t4 - Exit")
         option = input("Enter the option: ")
         if option == "1":
+            manufacture.view_recipie()
+        elif option == "1":
             manufacture.init_job()
         elif option == "2":
             warehousing.update_warehouse()

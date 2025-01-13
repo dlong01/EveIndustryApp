@@ -4,21 +4,11 @@ from ingredient import Ingredient
 import math
 
 class Activity:
-    def __init__(self, product_id, activity_id, desired_quantity):
+    def __init__(self, product_id, activity_id, required):
         self.activity_id = activity_id
         self.product_id = product_id
         self.ingredients = []
-        self.desired_quantity = desired_quantity
-
-        # Temporary step to input efficiency
-        # TODO: calculate efficiency automatically with stored BPC efficiency
-        type_name = self.get_product_name()
-
-        if type_name:
-            me = -1
-            while me < 0 or me > 10:
-                me = int(input(f"Enter the ME for {type_name}: "))
-            self.matt_eff = utils.calculate_matt_efficiency(int(me)/100)
+        self.required_quantity = required
 
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
@@ -29,8 +19,8 @@ class Activity:
 
         if activity_info:
             self.type_id = activity_info[0]
-            self.quantity = activity_info[1]
-            self.runs = math.ceil(desired_quantity / self.quantity)
+            self.produced = activity_info[1]
+            self.runs = math.ceil(required / self.produced)
 
             cursor.execute("SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE  typeID = ? AND activityID = ?", (self.type_id, self.activity_id))
             materials = cursor.fetchall()
@@ -48,10 +38,7 @@ class Activity:
         # Creating ingredient to produce required material
         for material in materials:
             cursor.execute("SELECT 1 FROM industryActivityProducts WHERE productTypeID = ? AND activityID = ?", (material[0], self.activity_id))
-            material_quantity = math.ceil((material[1] * self.runs) * self.matt_eff)
-
-            if material_quantity < self.runs:
-                material_quantity = self.runs
+            material_quantity = math.ceil(material[1] * self.runs)
 
             if cursor.fetchone():
                 prod_activity = Activity(material[0], self.activity_id, material_quantity)
@@ -88,8 +75,11 @@ class Activity:
 
         return raw_resources
     
+    def get_ingredients(self):
+        return self.ingredients
+    
     def display_simple_recipie(self, formatter):
-        formatter.print(f"{self.get_product_name()} x{self.desired_quantity}")
+        formatter.print(f"{self.get_product_name()} x{self.required_quantity}")
         formatter.increase_indent()
         for ingredient in self.ingredients:
             ingredient.output_ingredient_simple(formatter)
@@ -97,7 +87,7 @@ class Activity:
         formatter.decrease_indent()
 
     def display_complete_recipie(self, formatter):
-        formatter.print(f"{self.get_product_name()} x{self.desired_quantity}")
+        formatter.print(f"{self.get_product_name()} x{self.required_quantity}")
         formatter.increase_indent()
         for ingredient in self.ingredients:
             ingredient.output_recipie(formatter)

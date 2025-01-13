@@ -18,9 +18,8 @@ class Ingredient:
         formatter.print(f"{self.type_name} x{self.quantity}")
     
     def output_recipie(self, formatter):
-        
         if self.activity == None:
             self.output_ingredient_simple(formatter)
         else:
             self.activity.display_complete_recipie(formatter)
-
+            

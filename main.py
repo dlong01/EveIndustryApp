@@ -24,16 +24,15 @@ def main():
         option = input("Enter the option: ")
         if option == "1":
             manufacture.view_recipie()
-        elif option == "1":
-            manufacture.init_job()
         elif option == "2":
-            warehousing.update_warehouse()
+            manufacture.create_job()
         elif option == "3":
+            warehousing.update_warehouse()
+        elif option == "4":
             break
         else:
             print("Invalid option")
         
-
 def check_eve_db():
     conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
     cursor = conn.cursor()

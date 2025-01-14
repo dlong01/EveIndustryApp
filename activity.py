@@ -2,6 +2,7 @@ import sqlite3
 import utils
 from ingredient import Ingredient
 import math
+import api_requests
 
 class Activity:
     def __init__(self, product_id, activity_id, required):
@@ -9,6 +10,7 @@ class Activity:
         self.product_id = product_id
         self.ingredients = []
         self.required_quantity = required
+        
 
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
@@ -79,7 +81,7 @@ class Activity:
         return self.ingredients
     
     def display_simple_recipie(self, formatter):
-        formatter.print(f"{self.get_product_name()} x{self.required_quantity}")
+        formatter.print(f"{self.get_product_name()} x{self.produced}")
         formatter.increase_indent()
         for ingredient in self.ingredients:
             ingredient.output_ingredient_simple(formatter)
@@ -87,7 +89,7 @@ class Activity:
         formatter.decrease_indent()
 
     def display_complete_recipie(self, formatter):
-        formatter.print(f"{self.get_product_name()} x{self.required_quantity}")
+        formatter.print(f"{self.get_product_name()} x{self.required_quantity} (Runs: {self.runs} Excess: {self.produced*self.runs - self.required_quantity})")
         formatter.increase_indent()
         for ingredient in self.ingredients:
             ingredient.output_recipie(formatter)

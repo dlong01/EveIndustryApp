@@ -1,5 +1,7 @@
 import sqlite3
+from activity import Activity
 from job import Job
+from textOuput import Formatter
 import utils
 
 MANUFACTURING_PROCESS_ID = 1
@@ -27,10 +29,10 @@ def view_recipie():
     if not(product_id):
         return -1
     else:
-        quantity = int(input("Enter desired quantity: "))
-        job = Job(product_id, MANUFACTURING_PROCESS_ID, quantity)
-        if job:
-            job.display_complete()
+        activity = Activity(product_id, MANUFACTURING_PROCESS_ID, 1)
+        if activity:
+            with Formatter() as formatter:
+                activity.display_complete_recipie(formatter)
     
 def create_job():
     job = item_select()
@@ -40,12 +42,13 @@ def create_job():
         if option == "1":
             job.display_complete()
         elif option == "2":
-            job.display_shopping_list()
+            job.create_shopping_list()
         elif option == "3":
             print("not implemented")
         elif option == "4":
             job.display_complete()
             job.create_shopping_list()
+            print(job.cost)
             print("Time not implemented")
     else:
         print("Unable to create job")
@@ -73,6 +76,6 @@ def item_select():
     if not(product_id):
         return None
     else:
-        quantity = int(input("Enter desired quantity: "))
-        job = Job(product_id, MANUFACTURING_PROCESS_ID, quantity)
+        runs = int(input("Enter the number of runs: "))
+        job = Job(product_id, MANUFACTURING_PROCESS_ID, runs)
         return job

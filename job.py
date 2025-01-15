@@ -47,7 +47,7 @@ class Job:
         
     def calculate_install_cost(self):
         eiv = self.calculate_eiv()
-        install_cost = eiv * 0.1
+        install_cost = eiv * 1
         # TODO : Add the cost of the job installation
 
         print(install_cost)

@@ -1,4 +1,5 @@
 import sqlite3
+import facility_details
 import manufacture
 import utils
 import warehousing
@@ -19,8 +20,9 @@ def main():
         print("\t1 - View a recipie")
         print("\t2 - Manufacture a product")
         print("\t3 - Update the warehouse")
+        print("\t4 - Input tax rates")
 
-        print("\t4 - Exit")
+        print("\t0 - Exit")
         option = input("Enter the option: ")
         if option == "1":
             manufacture.view_recipie()
@@ -29,6 +31,8 @@ def main():
         elif option == "3":
             warehousing.update_warehouse()
         elif option == "4":
+            facility_details.update_facility_details()
+        elif option == "0":
             break
         else:
             print("Invalid option")

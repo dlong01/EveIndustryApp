@@ -37,12 +37,12 @@ def view_recipie():
 def create_job():
     job = item_select()
     if job:
-        option = input("What information would you like to see? (1) Full Job, (2) Materials Shopping list, (3) Job time, (4) All: ")
+        option = input("What information would you like to see? (1) Full Job, (2) Add to todo list, (3) Job time, (4) All: ")
 
         if option == "1":
             job.display_complete()
         elif option == "2":
-            job.create_shopping_list()
+            job.create_todo_list()
         elif option == "3":
             print("not implemented")
         elif option == "4":

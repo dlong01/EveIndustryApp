@@ -6,10 +6,8 @@ ESI_MARKET_PRICE = 'https://esi.evetech.net/latest/markets/prices/'
 market_prices_cache = None
 
 def get_adjusted_market_price(type_id):
-
     if market_prices_cache == None:
         get_market_prices()
-    
 
     adj_price = market_prices_cache[type_id][0]
     if adj_price == None:
@@ -33,7 +31,6 @@ def get_market_prices():
     global market_prices_cache
     response = requests.get(ESI_MARKET_PRICE)
     prices_list = response.json()
-
     market_prices_cache = {
         item['type_id']: [
             item.get('adjusted_price', None), 
@@ -50,10 +47,6 @@ def get_system_cost_index(system_id):
 
     cost_index = system_cost_index_cache[system_id][0]['cost_index']
     return cost_index
-
-def get_facility_tax(facility_id):
-    response = requests.get(f'https://esi.evetech.net/latest/industry/facilities/{facility_id}/')
-    return response.json()['tax']
 
 def get_system_cost_indicies():
     global system_cost_index_cache

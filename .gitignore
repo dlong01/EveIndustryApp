@@ -173,3 +173,5 @@ data/warehouse.db
 data/last_transaction.csv
 data/prev_transaction.txt
 shopping_list.csv
+data/facility_rates.csv
+todo_list.txt

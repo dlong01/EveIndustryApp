@@ -13,7 +13,9 @@ class Job:
         self.runs = self.activity.runs
         self.bp_me = 1-(float(input("Enter the ME level of the blueprint: "))/100)
         self.calculate_material_list(facility_details.get_me_modifier(self.get_group_id()))
-        self.cost = self.calculate_estimated_cost()
+        self.calculate_estimated_cost()
+        self.estimated_income = needed_quantity * api_requests.get_average_market_price(self.activity.product_id)
+        print(f"Estimated profit: {self.estimated_income - self.estimated_cost} Margin: {round(100*((self.estimated_income/self.estimated_cost)-1), 2)}%")
 
     def display_simple(self):
         with Formatter() as formatter:
@@ -37,7 +39,7 @@ class Job:
         activity_ingredients = self.activity.get_ingredients()
         self.ingredients = []
         for a_ingredient in activity_ingredients:
-            needed_quantity = math.ceil(self.runs * a_ingredient.quantity * self.bp_me * me_bonus)
+            needed_quantity = math.ceil(a_ingredient.quantity * self.bp_me * me_bonus)
             if needed_quantity < self.runs:
                 needed_quantity = self.runs
             self.ingredients.append(Ingredient(a_ingredient.type_id, needed_quantity, a_ingredient.activity))
@@ -56,16 +58,10 @@ class Job:
 
     def calculate_estimated_cost(self):
         self.estimated_cost = 0
-
-        conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
-        cursor = conn.cursor()
-
         system_id, job_cost_modifier, tax_rate = facility_details.get_install_modifiers()
 
         self.estimated_cost += self.calculate_install_cost(system_id, job_cost_modifier, tax_rate)
         self.estimated_cost += self.calculate_material_cost()
-
-        print(f"Estimated cost: {self.estimated_cost}")
         
     def calculate_install_cost(self, system_id, job_cost_modifier, tax_rate):
         eiv = self.calculate_eiv()

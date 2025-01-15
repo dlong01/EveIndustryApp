@@ -3,7 +3,6 @@ import facility_details
 import manufacture
 import utils
 import warehousing
-import api_requests
 
 def main():
     print("Welcome to Eve Industry App!")

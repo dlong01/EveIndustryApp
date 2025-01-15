@@ -16,7 +16,6 @@ def get_me_modifier(group_id):
         me_bonuses = eval(facility_info[3])
         
         me_bonus = me_bonuses.get(group_id, 0)
-        print(f"{group_id} {me_bonus}")
         if me_bonus == 0:
             print("No ME bonus found for this group")
 
@@ -41,8 +40,8 @@ def input_install_cost_modifiers():
 def input_me_bonuses():
     me_bonus_groups = {}
 
-    struct_role_bonus = float(input("Enter the structure role bonus: "))
-    struct_rig_bonus = float(input("Enter the structure rig bonus: "))
+    struct_role_bonus = float(input("Enter the structure role bonus: "))/100
+    struct_rig_bonus = float(input("Enter the structure rig bonus: "))/100
 
     conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
     cursor = conn.cursor()
@@ -53,22 +52,22 @@ def input_me_bonuses():
         if group == 'x':
             break
         
-        cursor.execute("SELECT groupID FROM invGroups WHERE groupName = ?", (group,))
+        cursor.execute("SELECT groupID FROM invGroups WHERE groupName LIKE ?", (group,))
         group_id = cursor.fetchone()
 
         if group_id is None:
             print("Not a valid group name")
             continue
 
-        me_bonus_groups.update({group_id[0]: struct_rig_bonus+struct_role_bonus})    
+        me_bonus_groups.update({group_id[0]: (1-struct_rig_bonus)*(1-struct_role_bonus)})    
 
-    cursor.execute("SELECT groupIDW FROM invGroups")
+    cursor.execute("SELECT groupID FROM invGroups")
     all_groups = cursor.fetchall()
 
     for group in all_groups:
         if group[0] in me_bonus_groups:
             continue
         else:
-            me_bonus_groups.update({group[0]: struct_role_bonus})
+            me_bonus_groups.update({group[0]: (1-struct_role_bonus)})
     conn.close()
     return me_bonus_groups

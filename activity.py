@@ -16,7 +16,7 @@ class Activity:
         cursor = conn.cursor()
 
         # Getting the activity's typeID and output quantity 
-        cursor.execute("SELECT typeID, quantity FROM industryActivityProducts WHERE productTypeID = ? AND activityID = ?", (self.product_id, self.activity_id))
+        cursor.execute("SELECT typeID, quantity FROM industryActivityProducts WHERE productTypeID LIKE ? AND activityID LIKE ?", (self.product_id, self.activity_id))
         activity_info = cursor.fetchone()
 
         if activity_info:
@@ -24,7 +24,7 @@ class Activity:
             self.produced = activity_info[1]
             self.runs = math.ceil(required / self.produced)
 
-            cursor.execute("SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE  typeID = ? AND activityID = ?", (self.type_id, self.activity_id))
+            cursor.execute("SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE typeID LIKE ? AND activityID LIKE ?", (self.type_id, self.activity_id))
             materials = cursor.fetchall()
 
             self.handle_ingredients(materials)
@@ -39,7 +39,7 @@ class Activity:
 
         # Creating ingredient to produce required material
         for material in materials:
-            cursor.execute("SELECT 1 FROM industryActivityProducts WHERE productTypeID = ? AND activityID = ?", (material[0], self.activity_id))
+            cursor.execute("SELECT 1 FROM industryActivityProducts WHERE productTypeID LIKE ? AND activityID LIKE ?", (material[0], self.activity_id))
             material_quantity = math.ceil(material[1] * self.runs)
 
             if cursor.fetchone():
@@ -53,7 +53,7 @@ class Activity:
         cursor = conn.cursor()
 
         # Getting the name of the product 
-        cursor.execute("SELECT typeName FROM invTypes WHERE typeID = ?", (self.product_id,))
+        cursor.execute("SELECT typeName FROM invTypes WHERE typeID LIKE ?", (self.product_id,))
         product_name = cursor.fetchone()[0]
 
         conn.close()

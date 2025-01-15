@@ -15,7 +15,7 @@ def view_recipie():
     product = input("\nEnter the product to manufacture: ")
 
     # Getting the typeID of the product
-    cursor.execute("SELECT typeID FROM invTypes WHERE typeName = ? COLLATE NOCASE", (product,))
+    cursor.execute("SELECT typeID FROM invTypes WHERE typeName LIKE ? COLLATE NOCASE", (product,))
     product_id = cursor.fetchone()
 
     if product_id:
@@ -62,7 +62,7 @@ def item_select():
     product = input("\nEnter the product to manufacture: ")
 
     # Getting the typeID of the product
-    cursor.execute("SELECT typeID FROM invTypes WHERE typeName = ? COLLATE NOCASE", (product,))
+    cursor.execute("SELECT typeID FROM invTypes WHERE typeName LIKE ? COLLATE NOCASE", (product,))
     product_id = cursor.fetchone()
 
     if product_id:

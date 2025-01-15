@@ -41,7 +41,7 @@ def check_eve_db():
     conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    cursor.execute("SELECT name FROM sqlite_master WHERE type LIKE 'table';")
     tables = cursor.fetchall()
 
     if len(tables) == 0:

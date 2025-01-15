@@ -8,9 +8,11 @@ from textOuput import Formatter
 import utils
 
 class Job:
-    def __init__(self, product, activity_id, runs):
-        self.activity = Activity(product, activity_id, runs)
-        self.runs = runs
+    def __init__(self, product, activity_id, needed_quantity):
+        self.activity = Activity(product, activity_id, needed_quantity)
+        self.runs = self.activity.runs
+        self.bp_me = 1-(float(input("Enter the ME level of the blueprint: "))/100)
+        self.calculate_material_list(facility_details.get_me_modifier(self.get_group_id()))
         self.cost = self.calculate_estimated_cost()
 
     def display_simple(self):
@@ -21,19 +23,7 @@ class Job:
         with Formatter() as formatter:
             self.activity.display_complete_recipie(formatter)
 
-    def create_shopping_list(self):
-        print("Not implemented")
-        # resources = self.activity.get_raw_resources()
-        # with Formatter() as formatter:
-            # with open("shopping_list.csv", "w") as shopping_list:
-                # print("Shopping List:")
-                # formatter.increase_indent()
-                # for resource in resources:
-                    # formatter.print(f"{resource.to_get}x {resource.type_name}")
-                    # shopping_list.write(f"{resource.type_name}\t{resource.to_get}\n")
-
     def create_todo_list(self):
-        self.calculate_material_list(facility_details.get_me_modifier(self.get_group_id()))
         to_do_list = ""
         for ingredient in self.ingredients:
             to_get = ingredient.quantity - self.get_item_stock(ingredient.type_id) 
@@ -44,12 +34,10 @@ class Job:
             todo_list.write(to_do_list)
 
     def calculate_material_list(self, me_bonus):
-        bp_me = int(input("Enter the ME level of the blueprint: "))
         activity_ingredients = self.activity.get_ingredients()
         self.ingredients = []
-        print(f"me_bonus: {me_bonus} bp_me: {bp_me}")
         for a_ingredient in activity_ingredients:
-            needed_quantity = math.ceil((self.runs * a_ingredient.quantity) * ((100 - (bp_me + me_bonus))/100))
+            needed_quantity = math.ceil(self.runs * a_ingredient.quantity * self.bp_me * me_bonus)
             if needed_quantity < self.runs:
                 needed_quantity = self.runs
             self.ingredients.append(Ingredient(a_ingredient.type_id, needed_quantity, a_ingredient.activity))
@@ -58,7 +46,7 @@ class Job:
         conn = sqlite3.connect(utils.WAREHOUSE_DATABASE_PATH)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT quantity FROM items WHERE typeID = ?", (type_id,))
+        cursor.execute("SELECT quantity FROM items WHERE typeID LIKE ?", (type_id,))
         quantity = cursor.fetchone()
         conn.close()
         if quantity:
@@ -67,19 +55,17 @@ class Job:
             return 0
 
     def calculate_estimated_cost(self):
-        cost = 0
+        self.estimated_cost = 0
 
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT groupID FROM invTypes WHERE typeID = ?", (self.activity.type_id,))
-        group_id = cursor.fetchone()[0]
-
         system_id, job_cost_modifier, tax_rate = facility_details.get_install_modifiers()
 
-        cost += self.calculate_install_cost(system_id, job_cost_modifier, tax_rate)
-        #self.calculate_material_list(me_bonus)
-        #self.get_material_cost()
+        self.estimated_cost += self.calculate_install_cost(system_id, job_cost_modifier, tax_rate)
+        self.estimated_cost += self.calculate_material_cost()
+
+        print(f"Estimated cost: {self.estimated_cost}")
         
     def calculate_install_cost(self, system_id, job_cost_modifier, tax_rate):
         eiv = self.calculate_eiv()
@@ -87,10 +73,22 @@ class Job:
         system_cost_index = api_requests.get_system_cost_index(system_id)
         gross_cost = eiv * ((system_cost_index * (100-job_cost_modifier))/100)
         tax_cost = eiv * ((tax_rate)/100)
-        print(f"{tax_rate}")
         install_cost = gross_cost + tax_cost
-        print(f"{gross_cost}, {tax_cost}, {install_cost}")
         return install_cost
+    
+    def calculate_material_cost(self):
+        material_cost = 0
+        conn = sqlite3.connect(utils.WAREHOUSE_DATABASE_PATH)
+        cursor = conn.cursor()
+        for ingredient in self.ingredients:
+            cursor.execute("SELECT cost FROM items WHERE typeID LIKE ?", (ingredient.type_id,))
+            cost = cursor.fetchone()
+
+            if cost:
+                material_cost += ingredient.quantity * cost[0]
+            else:
+                material_cost += ingredient.quantity * api_requests.get_average_market_price(ingredient.type_id)
+        return material_cost
 
     def calculate_eiv(self):
         eiv = 0
@@ -102,8 +100,7 @@ class Job:
         conn = sqlite3.connect(utils.EVE_DATABASE_PATH)
         cursor = conn.cursor()
 
-        cursor.execute("SELECT groupID FROM invTypes WHERE typeID = ?", (self.activity.type_id,))
+        cursor.execute("SELECT groupID FROM invTypes WHERE typeID LIKE ?", (self.activity.product_id,))
         group_id = cursor.fetchone()[0]
-        print(f"Group ID: {cursor.fetchall()}")
         conn.close()
         return group_id

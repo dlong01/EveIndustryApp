@@ -15,6 +15,7 @@ class Job:
         self.calculate_material_list(facility_details.get_me_modifier(self.get_group_id()))
         self.calculate_estimated_cost()
         self.estimated_income = needed_quantity * api_requests.get_average_market_price(self.activity.product_id)
+        self.income_post_sales_tax = self.estimated_income * (1+0.0203) * (1+0.01)
         print(f"Estimated profit: {self.estimated_income - self.estimated_cost} Margin: {round(100*((self.estimated_income/self.estimated_cost)-1), 2)}%")
 
     def display_simple(self):

@@ -42,7 +42,7 @@ def create_job():
         if option == "1":
             job.display_complete()
         elif option == "2":
-            job.create_todo_list()
+            job.create_todo_lists()
         elif option == "3":
             print("not implemented")
         elif option == "4":

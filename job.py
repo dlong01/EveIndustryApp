@@ -1,4 +1,5 @@
 import math
+import os
 import sqlite3
 from activity import Activity
 import api_requests
@@ -11,12 +12,14 @@ class Job:
     def __init__(self, product, activity_id, needed_quantity):
         self.activity = Activity(product, activity_id, needed_quantity)
         self.runs = self.activity.runs
+        self.product_name = product
+        self.needed_quantity = needed_quantity
         self.bp_me = 1-(float(input("Enter the ME level of the blueprint: "))/100)
         self.calculate_material_list(facility_details.get_me_modifier(self.get_group_id()))
         self.calculate_estimated_cost()
         self.estimated_income = needed_quantity * api_requests.get_average_market_price(self.activity.product_id)
         self.income_post_sales_tax = self.estimated_income * (1+0.0203) * (1+0.01)
-        print(f"Estimated profit: {self.estimated_income - self.estimated_cost} Margin: {round(100*((self.estimated_income/self.estimated_cost)-1), 2)}%")
+        print(f"Estimated profit: {round(self.estimated_income - self.estimated_cost,2)} ISK \tMargin: {round(100*((self.estimated_income/self.estimated_cost)-1), 2)}%")
 
     def display_simple(self):
         with Formatter() as formatter:
@@ -26,15 +29,27 @@ class Job:
         with Formatter() as formatter:
             self.activity.display_complete_recipie(formatter)
 
-    def create_todo_list(self):
-        to_do_list = ""
-        for ingredient in self.ingredients:
-            to_get = ingredient.quantity - self.get_item_stock(ingredient.type_id) 
-            if to_get > 0:
-                to_do_list += f"{to_get} {ingredient.type_name}\n"
+    def create_todo_lists(self):
+        job_folder_path = f"jobs/{self.needed_quantity}x{self.activity.get_product_name()}"
+        os.makedirs(job_folder_path, exist_ok=True)
 
-        with open("todo_list.txt", "w") as todo_list:
-            todo_list.write(to_do_list)
+        shopping_list = "Buy:\n"
+        production_list = "Build:\n"
+        for ingredient in self.ingredients:
+            if ingredient.activity is None:
+                to_buy = ingredient.quantity - self.get_item_stock(ingredient.type_id) 
+                if to_buy > 0:
+                    shopping_list += f"{to_buy} {ingredient.type_name}\n"
+            else:
+                to_build = ingredient.quantity - self.get_item_stock(ingredient.type_id)
+                if to_build > 0:
+                    production_list += f"{to_build} {ingredient.type_name}\n"
+
+        with open(f"{job_folder_path}/shopping_list.txt", "w") as shopping_list_file:
+            shopping_list_file.write(shopping_list)
+        
+        with open(f"{job_folder_path}/production_list.txt", "w") as production_list_file:
+            production_list_file.write(production_list)
 
     def calculate_material_list(self, me_bonus):
         activity_ingredients = self.activity.get_ingredients()

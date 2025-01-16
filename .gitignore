@@ -175,11 +175,4 @@ data/prev_transaction.txt
 shopping_list.csv
 data/facility_rates.csv
 todo_list.txt
-jobs/100xCharon/production_list.txt
-jobs/100xCharon/shopping_list.txt
-jobs/16000xHelium Fuel Block/production_list.txt
-jobs/16000xHelium Fuel Block/shopping_list.txt
-jobs/20000xR.A.M.- Robotics/production_list.txt
-jobs/20000xR.A.M.- Robotics/shopping_list.txt
-jobs/5xLarge Drone Mining Augmentor II/production_list.txt
-jobs/5xLarge Drone Mining Augmentor II/shopping_list.txt
+jobs/*

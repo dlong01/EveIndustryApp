@@ -47,7 +47,6 @@ def create_job():
             print("not implemented")
         elif option == "4":
             job.display_complete()
-            job.create_shopping_list()
             print(job.cost)
             print("Time not implemented")
     else:

@@ -1,17 +1,53 @@
+using MyUtils;
+
 namespace EveIndustryApp
 {
+    public class ComponentFactory
+    {
+        private DatabaseHelper _datebaseHelper;
+        private WarehouseManager _warehouseManager;
+
+        public ComponentFactory(WarehouseManager warehouseManager, DatabaseHelper databaseHelper)
+        {
+            _datebaseHelper = databaseHelper;
+            _warehouseManager = warehouseManager; 
+        }
+
+        public Component CreateComponent(int typeID, int quantity, int[] allowedActivities)
+        {
+            string allowedActivitiesString = string.Join(",", allowedActivities);
+
+            List<object> queryResponse = _datebaseHelper.ExecuteQuery(
+                $"SELECT * FROM industryACtivityProducts WHERE productTypeID = {typeID} AND activityID IN ({allowedActivitiesString})");
+
+            if (queryResponse.Count > 0)
+            {
+                return new Job(quantity, typeID, _warehouseManager, 0, 0); // TODO - Add me and te calculation
+            }
+            else
+            {
+                return new Material(quantity, typeID, _warehouseManager);
+            }
+        }
+    }
+
     public abstract class Component
     {
         public int RequiredQuantity { get; protected set; }
         public int TypeID { get; protected set; }
         public float UnitCost { get; protected set; }
 
-        protected WarehouseManager Storage;
+        protected DatabaseHelper _databaseHelper;
+        protected WarehouseManager _warehouseManager;
 
         public Component(int quantity, int typeID, WarehouseManager warehouseManager)
         {
             RequiredQuantity = quantity;
             TypeID = typeID;
+
+            _warehouseManager = warehouseManager;
+
+            _databaseHelper = new DatabaseHelper(".data/eve.db");
         }
 
         public abstract float GetCost();
@@ -22,8 +58,12 @@ namespace EveIndustryApp
         private int _materialEfficiency = 0;
         private int _timeEfficiency = 0;
         private int _runs = 1;
+        private int _activityID = 1;
+
+        private List<Component> _components = new List<Component>();
         
-        public Job(int quantity, int typeID, WarehouseManager warehouseManager, int me = 0, int te = 0) : base(quantity, typeID, warehouseManager)
+        public Job(int quantity, int typeID, WarehouseManager warehouseManager, int me = 0, int te = 0) 
+            : base(quantity, typeID, warehouseManager)
         {
             if (me < 0 || me > 10 )
             {
@@ -37,13 +77,28 @@ namespace EveIndustryApp
             _materialEfficiency = me;
             _timeEfficiency = te;
 
-            _runs = CalculateRuns();
-            
+            CalculateRuns();
+            CalcualteComponents();
         }
 
-        private int CalculateRuns()
+        private void CalculateRuns()
         {
             throw new NotImplementedException();
+        }
+
+        private void CalcualteComponents()
+        {
+            string query = $"SELECT typeID FROM industryActivityProducts WHERE productTypeID = {TypeID}, activityID = {_activityID}";
+            int activityTypeID = (int)_databaseHelper.ExecuteQuery(query).First();
+
+            query = $"SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE typeID = {activityTypeID}, activityID = {_activityID}";
+            List<int[]> components = _databaseHelper.ExecuteQuery(query).Cast<int[]>().ToList();
+
+            ComponentFactory componentFactory = new ComponentFactory(_warehouseManager, _databaseHelper);
+            foreach (int[] componentInfo in components)
+            {
+                _components.Add(componentFactory.CreateComponent(componentInfo[0], componentInfo[1], new int[] { _activityID }));
+            }
         }
 
         public override float GetCost()
@@ -54,7 +109,8 @@ namespace EveIndustryApp
 
     public class Material : Component
     {
-        public Material(int quantity, int typeID, WarehouseManager warehouseManager) : base(quantity, typeID, warehouseManager) { }
+        public Material(int quantity, int typeID, WarehouseManager warehouseManager) 
+            : base(quantity, typeID, warehouseManager) { }
 
         public override float GetCost()
         {

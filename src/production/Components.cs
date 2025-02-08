@@ -6,7 +6,7 @@ namespace EveIndustryApp
     {
         public int RequiredQuantity { get; protected set; }
         public int TypeID { get; protected set; }
-        public float UnitCost { get; protected set; }
+        public double UnitCost { get; protected set; }
 
         protected DatabaseHelper _databaseHelper;
         protected WarehouseManager _warehouseManager;
@@ -28,11 +28,12 @@ namespace EveIndustryApp
             // TODO - Workout how many of each item are stored in the warehouse and therefore how many will need to be produced/bought
             _quantityToAquire = RequiredQuantity; 
         }
-        public abstract float GetCost();
+        public abstract double GetCost();
     }
 
     public class Job : Component
     {
+        public int SpareProduced;
         private int _materialEfficiency = 0;
         private int _timeEfficiency = 0;
         private int _runs = 1;
@@ -40,10 +41,10 @@ namespace EveIndustryApp
 
         private List<Component> _components = new List<Component>();
         
-        public Job(int quantity, int typeID, WarehouseManager warehouseManager, int me = 0, int te = 0) 
+        public Job(int quantity, int typeID, WarehouseManager warehouseManager, int me = 0, int te = 0)
             : base(quantity, typeID, warehouseManager)
         {
-            if (me < 0 || me > 10 )
+            if (me < 0 || me > 10)
             {
                 throw new ArgumentOutOfRangeException(nameof(me));
             }
@@ -66,6 +67,7 @@ namespace EveIndustryApp
             int quantityPerRun = (int)_databaseHelper.ExecuteQuery(query).First();
 
             _runs = (int)Math.Ceiling(_quantityToAquire / (double)quantityPerRun);
+            SpareProduced = (_runs * quantityPerRun) - _quantityToAquire;
         }
 
         private void CalculateComponents()
@@ -93,7 +95,7 @@ namespace EveIndustryApp
             return quantityNeeded;
         }
 
-        public override float GetCost()
+        public override double GetCost()
         {
             throw new NotImplementedException();
         }
@@ -104,7 +106,7 @@ namespace EveIndustryApp
         public Material(int quantity, int typeID, WarehouseManager warehouseManager)
             : base(quantity, typeID, warehouseManager) { }
 
-        public override float GetCost()
+        public override double GetCost()
         {
             return UnitCost * RequiredQuantity;
         }

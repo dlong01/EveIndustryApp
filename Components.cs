@@ -86,6 +86,8 @@ namespace EveIndustryApp
             string query = $"SELECT quantity FROM industryActivityProducts WHERE typeID = {TypeID}, activityID = {_activityID}";
 
             int quantityPerRun = (int)_databaseHelper.ExecuteQuery(query).First();
+
+            _runs = (int)Math.Ceiling(RequiredQuantity / (double)quantityPerRun);
         }
 
         private void CalculateComponents()

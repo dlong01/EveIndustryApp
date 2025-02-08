@@ -97,7 +97,7 @@ namespace EveIndustryApp
             ComponentFactory componentFactory = new ComponentFactory(_warehouseManager, _databaseHelper);
             foreach (int[] componentInfo in components)
             {
-                _components.Add(componentFactory.CreateComponent(componentInfo[0], componentInfo[1], new int[] { _activityID }));
+                _components.Add(componentFactory.CreateComponent(componentInfo[0], componentInfo[1], [_activityID]));
             }
         }
 

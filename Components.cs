@@ -2,35 +2,6 @@ using MyUtils;
 
 namespace EveIndustryApp
 {
-    public class ComponentFactory
-    {
-        private DatabaseHelper _datebaseHelper;
-        private WarehouseManager _warehouseManager;
-
-        public ComponentFactory(WarehouseManager warehouseManager, DatabaseHelper databaseHelper)
-        {
-            _datebaseHelper = databaseHelper;
-            _warehouseManager = warehouseManager; 
-        }
-
-        public Component CreateComponent(int typeID, int quantity, int[] allowedActivities)
-        {
-            string allowedActivitiesString = string.Join(",", allowedActivities);
-
-            List<object> queryResponse = _datebaseHelper.ExecuteQuery(
-                $"SELECT * FROM industryACtivityProducts WHERE productTypeID = {typeID} AND activityID IN ({allowedActivitiesString})");
-
-            if (queryResponse.Count > 0)
-            {
-                return new Job(quantity, typeID, _warehouseManager, 0, 0); // TODO - Add me and te calculation
-            }
-            else
-            {
-                return new Material(quantity, typeID, _warehouseManager);
-            }
-        }
-    }
-
     public abstract class Component
     {
         public int RequiredQuantity { get; protected set; }
@@ -39,6 +10,7 @@ namespace EveIndustryApp
 
         protected DatabaseHelper _databaseHelper;
         protected WarehouseManager _warehouseManager;
+        protected int _quantityToAquire; 
 
         public Component(int quantity, int typeID, WarehouseManager warehouseManager)
         {
@@ -46,10 +18,16 @@ namespace EveIndustryApp
             TypeID = typeID;
 
             _warehouseManager = warehouseManager;
+            CalculateQuantityToAquire();
 
             _databaseHelper = new DatabaseHelper(".data/eve.db");
         }
 
+        private void CalculateQuantityToAquire()
+        {
+            // TODO - Workout how many of each item are stored in the warehouse and therefore how many will need to be produced/bought
+            _quantityToAquire = RequiredQuantity; 
+        }
         public abstract float GetCost();
     }
 
@@ -87,7 +65,7 @@ namespace EveIndustryApp
 
             int quantityPerRun = (int)_databaseHelper.ExecuteQuery(query).First();
 
-            _runs = (int)Math.Ceiling(RequiredQuantity / (double)quantityPerRun);
+            _runs = (int)Math.Ceiling(_quantityToAquire / (double)quantityPerRun);
         }
 
         private void CalculateComponents()
@@ -123,13 +101,12 @@ namespace EveIndustryApp
 
     public class Material : Component
     {
-        public Material(int quantity, int typeID, WarehouseManager warehouseManager) 
+        public Material(int quantity, int typeID, WarehouseManager warehouseManager)
             : base(quantity, typeID, warehouseManager) { }
 
         public override float GetCost()
         {
             return UnitCost * RequiredQuantity;
         }
-
     }
 }

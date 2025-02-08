@@ -78,15 +78,17 @@ namespace EveIndustryApp
             _timeEfficiency = te;
 
             CalculateRuns();
-            CalcualteComponents();
+            CalculateComponents();
         }
 
         private void CalculateRuns()
         {
-            throw new NotImplementedException();
+            string query = $"SELECT quantity FROM industryActivityProducts WHERE typeID = {TypeID}, activityID = {_activityID}";
+
+            int quantityPerRun = (int)_databaseHelper.ExecuteQuery(query).First();
         }
 
-        private void CalcualteComponents()
+        private void CalculateComponents()
         {
             string query = $"SELECT typeID FROM industryActivityProducts WHERE productTypeID = {TypeID}, activityID = {_activityID}";
             int activityTypeID = (int)_databaseHelper.ExecuteQuery(query).First();
@@ -97,8 +99,18 @@ namespace EveIndustryApp
             ComponentFactory componentFactory = new ComponentFactory(_warehouseManager, _databaseHelper);
             foreach (int[] componentInfo in components)
             {
-                _components.Add(componentFactory.CreateComponent(componentInfo[0], componentInfo[1], [_activityID]));
+                _components.Add(componentFactory.CreateComponent(componentInfo[0], ComponentQuantityNeeded(componentInfo[1]), [_activityID]));
             }
+        }
+
+        private int ComponentQuantityNeeded(int requiredPerRun)
+        {
+            int quantityNeeded = _runs * requiredPerRun;
+            quantityNeeded = (int)Math.Ceiling((double)(quantityNeeded * ((100 - _materialEfficiency) / 100)));
+
+            if (quantityNeeded < _runs) { quantityNeeded = _runs; }
+
+            return quantityNeeded;
         }
 
         public override float GetCost()

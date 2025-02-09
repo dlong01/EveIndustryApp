@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using MyUtils;
@@ -19,15 +20,33 @@ namespace EveIndustryApp
             TypeName = typeName;
             Quantity = desiredQuantity;
 
-            _job = new Job(Quantity, GetTypeID(typeName), warehouseManager);
+            ComponentFactory factory = new ComponentFactory(warehouseManager); 
+           
+            if (factory.CheckIfMaterial(GetTypeID(typeName), [1]))
+            {
+                throw new ArgumentException("No recipie found for given typeName");
+            }
+            else
+            {
+                _job = (Job)factory.CreateComponent(desiredQuantity, GetTypeID(typeName), [1]);
+            }
         }
 
         private int GetTypeID(string typeName)
         {
             DatabaseHelper databaseHelper = new DatabaseHelper("./data/eve.db");
-            List<object> typeIDQuery = databaseHelper.ExecuteQuery($"SELECT typeID FROM invTypes WHERE typeName = {typeName}");
-
-            return (int)typeIDQuery.First();
+            List<object> typeIDQuery = databaseHelper.ExecuteQuery($"SELECT typeID FROM invTypes WHERE typeName = '{typeName}'");
+            
+            if (typeIDQuery.Count > 0)
+            {
+                string typeIDString = typeIDQuery.First().ToString();
+                if (typeIDString != null)
+                {
+                    int typeID = int.Parse(typeIDString);
+                    return typeID;
+                }
+            }
+            throw new ArgumentException("invType not found");
         }
     }
 }

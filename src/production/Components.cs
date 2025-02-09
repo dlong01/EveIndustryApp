@@ -20,7 +20,7 @@ namespace EveIndustryApp
             _warehouseManager = warehouseManager;
             CalculateQuantityToAquire();
 
-            _databaseHelper = new DatabaseHelper(".data/eve.db");
+            _databaseHelper = new DatabaseHelper("./data/eve.db");
         }
 
         private void CalculateQuantityToAquire()
@@ -62,7 +62,7 @@ namespace EveIndustryApp
 
         private void CalculateRuns()
         {
-            string query = $"SELECT quantity FROM industryActivityProducts WHERE typeID = {TypeID}, activityID = {_activityID}";
+            string query = $"SELECT quantity FROM industryActivityProducts WHERE typeID = {TypeID} AND activityID = {_activityID}";
 
             int quantityPerRun = (int)_databaseHelper.ExecuteQuery(query).First();
 
@@ -72,13 +72,13 @@ namespace EveIndustryApp
 
         private void CalculateComponents()
         {
-            string query = $"SELECT typeID FROM industryActivityProducts WHERE productTypeID = {TypeID}, activityID = {_activityID}";
+            string query = $"SELECT typeID FROM industryActivityProducts WHERE productTypeID = {TypeID} AND activityID = {_activityID}";
             int activityTypeID = (int)_databaseHelper.ExecuteQuery(query).First();
 
-            query = $"SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE typeID = {activityTypeID}, activityID = {_activityID}";
+            query = $"SELECT materialTypeID, quantity FROM industryActivityMaterials WHERE typeID = {activityTypeID} AND activityID = {_activityID}";
             List<int[]> components = _databaseHelper.ExecuteQuery(query).Cast<int[]>().ToList();
 
-            ComponentFactory componentFactory = new ComponentFactory(_warehouseManager, _databaseHelper);
+            ComponentFactory componentFactory = new ComponentFactory(_warehouseManager);
             foreach (int[] componentInfo in components)
             {
                 _components.Add(componentFactory.CreateComponent(componentInfo[0], ComponentQuantityNeeded(componentInfo[1]), [_activityID]));

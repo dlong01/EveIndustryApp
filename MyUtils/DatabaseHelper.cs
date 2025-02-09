@@ -1,3 +1,4 @@
+using System.Data;
 using System.Data.SqlClient;
 using System.Data.SQLite;
 using Microsoft.VisualBasic;
@@ -20,8 +21,13 @@ namespace MyUtils
                 SQLiteCommand command = new SQLiteCommand(query, connection);
                 connection.Open();
                 SQLiteDataReader reader = command.ExecuteReader();
-                
-                return reader.Cast<object>().ToList();
+
+                List<object> queryResult = new List<object>();
+                while (reader.Read())
+                {
+                    queryResult.Add(reader.GetValue(0));
+                }
+                return queryResult;
             }
         }
 
